@@ -1,8 +1,8 @@
+import array
+import os
 from itertools import count
 from math import gcd
-import random
-import math
-
+import re
 
 def pgcd(a, n):
     if n < a:
@@ -31,18 +31,30 @@ def exposant_modulaire(base, exponent, modulus):
     return result
 
 
-def pollard_rho(n):
+def pollard_moins1(n):
     print('pollard')
     m = 2
-    for i in range(1, n):
-        m = (m ** i) % n
-        if pgcd(n, m - 1) != 1:
-            p = pgcd(n, m - 1)
-            return p
+    max = n
+
+    for i in range(1, max):
+        m = exposant_modulaire(m, i, n)
+        if gcd(n, m - 1) != 1:
+            return gcd(n, m - 1)
+
+
+def pollard_rho(number):
+    x = 2
+    for cycle in count(1):
+        y = x
+        for i in range(2 ** cycle):
+            x = (x * x + 1) % number
+            factor = gcd(x - y, number)
+            if factor > 1:
+                return factor
 
 
 def factoriser(n):
-    p = pollard_rho(n)
+    p = pollard_moins1(n)
     q = n // p
 
     return p, q
@@ -53,7 +65,7 @@ def phi_n(p, q):
 
 
 def inverse_multiplicatif(e, n):
-    if(e < 0):
+    if e < 0:
         return 'Erreur e plus petit que 0'
 
     h_g = n
@@ -87,19 +99,49 @@ def calcul_d(e_inverse, phi_n):
 
 def rsa(n, e, c):
     p, q = factoriser(n)
+    print(f"p : {p}, q : {q}")
     phi_de_n = phi_n(p, q)
     e_inverse = inverse_multiplicatif(e, phi_de_n)
     d = calcul_d(e_inverse, phi_de_n)
 
     return exposant_modulaire(c, d, n)
 
+
+def rsa_sans_resultat(n, e):
+    p = pollard_moins1(n)
+    q = n // p
+    print(f'p : {p}, q : {q}, pq : {p*q}')
+    phi_de_n = phi_n(p, q)
+    e_inverse = inverse_multiplicatif(e, phi_de_n)
+    d = calcul_d(e_inverse, phi_de_n)
+
+    return d
+
+
+def rsa_avec_result(d, n, c):
+    print(f"d : {d}, c : {c}, n : {n}")
+    return exposant_modulaire(c, d, n)
+
+
 def decrypter_salaires():
-    file = open('sortie.txt','rb')     # Lecture binaire du fichier
-    print()
-    # Paramatres pour dechiffrer les salaires
     n_rsa = 86062381025757488680496918738059554508315544797
     e_rsa = 13
-    rsa(n_rsa, e_rsa, file) # file -> contenu du fichier
+    filename = 'sortie.txt'
+    d = rsa_sans_resultat(n_rsa, e_rsa)
+    # d = 66201831558274991291693010441851519161025288197
+
+    with open(filename, 'r') as file:
+        lines = file.readlines()
+        salaires = {}
+        for i in range(7):
+            line = lines[i].replace('\n', '')
+            line = line.replace('\t', '')
+            line = line.split(':')
+
+            salaires[line[0]] = rsa_avec_result(d, n_rsa, int(line[1]))
+
+        print(salaires)
+
 
 def decrypter_qpg():
     # Parametres pour dechiffrer (p,q,g)
@@ -109,7 +151,6 @@ def decrypter_qpg():
     c_p = 55044587110698448189468021909149190373421069219506981148292634221985403129928367209713497911359302701069378532959510957622709061077384648566361893749771744973388835727259855002207844685526295296408852878202498675158924213264474587673461598376054133832370354928763624202425050121409987087150490459351809040858
     c_g = 43089172300844684958445369204000423742543038862350925279569289644298734265625491619486408239703259462606739540181409010715678916496299388069246398890469779970287613357772582024703107603034996120914490203805569384580718393586094166173301167583379300330660182750028000520221960355249560831414918130647224546308
 
-    # print(factoriser(n_dh))
     m_q = rsa(n_dh, e_dh, c_q)
     m_p = rsa(n_dh, e_dh, c_p)
     m_g = rsa(n_dh, e_dh, c_g)
@@ -118,3 +159,5 @@ def decrypter_qpg():
 
     return m_q, m_p, m_g
 
+
+decrypter_salaires()
