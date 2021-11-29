@@ -1,8 +1,6 @@
-import array
-import os
 from itertools import count
 from math import gcd
-import re
+
 
 def pgcd(a, n):
     if n < a:
@@ -97,20 +95,8 @@ def calcul_d(e_inverse, phi_n):
     return e_inverse % phi_n
 
 
-def rsa(n, e, c):
+def rsa_d(n, e):
     p, q = factoriser(n)
-    print(f"p : {p}, q : {q}")
-    phi_de_n = phi_n(p, q)
-    e_inverse = inverse_multiplicatif(e, phi_de_n)
-    d = calcul_d(e_inverse, phi_de_n)
-
-    return exposant_modulaire(c, d, n)
-
-
-def rsa_sans_resultat(n, e):
-    p = pollard_moins1(n)
-    q = n // p
-    print(f'p : {p}, q : {q}, pq : {p*q}')
     phi_de_n = phi_n(p, q)
     e_inverse = inverse_multiplicatif(e, phi_de_n)
     d = calcul_d(e_inverse, phi_de_n)
@@ -118,8 +104,7 @@ def rsa_sans_resultat(n, e):
     return d
 
 
-def rsa_avec_result(d, n, c):
-    print(f"d : {d}, c : {c}, n : {n}")
+def rsa(d, n, c):
     return exposant_modulaire(c, d, n)
 
 
@@ -127,8 +112,7 @@ def decrypter_salaires():
     n_rsa = 86062381025757488680496918738059554508315544797
     e_rsa = 13
     filename = 'sortie.txt'
-    d = rsa_sans_resultat(n_rsa, e_rsa)
-    # d = 66201831558274991291693010441851519161025288197
+    d = rsa_d(n_rsa, e_rsa)
 
     with open(filename, 'r') as file:
         lines = file.readlines()
@@ -138,7 +122,7 @@ def decrypter_salaires():
             line = line.replace('\t', '')
             line = line.split(':')
 
-            salaires[line[0]] = rsa_avec_result(d, n_rsa, int(line[1]))
+            salaires[line[0]] = rsa(d, n_rsa, int(line[1]))
 
         print(salaires)
 
@@ -151,13 +135,11 @@ def decrypter_qpg():
     c_p = 55044587110698448189468021909149190373421069219506981148292634221985403129928367209713497911359302701069378532959510957622709061077384648566361893749771744973388835727259855002207844685526295296408852878202498675158924213264474587673461598376054133832370354928763624202425050121409987087150490459351809040858
     c_g = 43089172300844684958445369204000423742543038862350925279569289644298734265625491619486408239703259462606739540181409010715678916496299388069246398890469779970287613357772582024703107603034996120914490203805569384580718393586094166173301167583379300330660182750028000520221960355249560831414918130647224546308
 
-    m_q = rsa(n_dh, e_dh, c_q)
-    m_p = rsa(n_dh, e_dh, c_p)
-    m_g = rsa(n_dh, e_dh, c_g)
+    d = rsa_d(n_dh, e_dh)
+    m_q = rsa(d, n_dh, c_q)
+    m_p = rsa(d, n_dh, c_p)
+    m_g = rsa(d, n_dh, c_g)
 
     print(f"q : {m_q} \np : {m_p} \ng : {m_g}")
 
     return m_q, m_p, m_g
-
-
-decrypter_salaires()
