@@ -19,19 +19,13 @@ def pgcd(a, n):
 
 
 def exposant_modulaire(base, exponent, modulus):
-    # initialize result
     result = 1
 
     while exponent > 0:
-
-        # if y is odd, multiply base with result
         if exponent & 1:
             result = (result * base) % modulus
 
-        # exponent = exponent/2
         exponent = exponent >> 1
-
-        # base = base * base
         base = (base * base) % modulus
 
     return result
@@ -99,6 +93,14 @@ def rsa(n, e, c):
 
     return exposant_modulaire(c, d, n)
 
+def decrypter_salaires():
+    file = open('sortie.txt','rb')     # Lecture binaire du fichier
+    print()
+    # Paramatres pour dechiffrer les salaires
+    n_rsa = 86062381025757488680496918738059554508315544797
+    e_rsa = 13
+    rsa(n_rsa, e_rsa, file) # file -> contenu du fichier
+
 def decrypter_qpg():
     # Parametres pour dechiffrer (p,q,g)
     n_dh = 71632723108922042565754944705405938190163585182073827738737257362015607916694427702407539315166426071602596601779609881448209515844638662529498857637473895727439924386515509746946997356908229763669590304560652312325131017845440601438692992657035378159812499525148161871071841049058092385268270673367938496513
@@ -112,15 +114,7 @@ def decrypter_qpg():
     m_p = rsa(n_dh, e_dh, c_p)
     m_g = rsa(n_dh, e_dh, c_g)
 
-    print(f"p : {m_q} \nq : {m_p} \ng : {m_g}")
+    print(f"q : {m_q} \np : {m_p} \ng : {m_g}")
+
     return m_q, m_p, m_g
-
-
-
-# Paramatres pour dechiffrer les salaires
-n_rsa = 86062381025757488680496918738059554508315544797
-e_rsa = 13
-c_rsa = 8606238102575748868049691873805954353534535554508315544797 # nombre aléatoire pour tester
-# print(rsa(n_rsa, e_rsa, c_rsa))
-
 

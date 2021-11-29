@@ -6,6 +6,7 @@ Created on 2009-07-14
 
 import os.path
 import array
+from dh import *
 
 
 # Extraire un masque de 8 bits de la cle
@@ -63,5 +64,10 @@ def chiffre_flux(cle,fichierin,fichierout):
     outfileobj.close()
 
 # Appel de la methode de chiffrement / dechiffrement de fichiers
-cle = 2**25 - 1 - (2**17 - 1) + 2**9 - 1
-chiffre_flux(cle,"test.txt","sortie.txt")
+# cle = 2**25 - 1 - (2**17 - 1) + 2**9 - 1
+
+
+cle = exposant_modulaire(g, x, p)
+print(cle)
+chiffre_flux(cle,"salaires.mm","sortie.txt")
+
